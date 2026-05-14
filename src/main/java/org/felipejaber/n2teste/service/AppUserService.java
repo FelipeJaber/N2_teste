@@ -26,6 +26,21 @@ public class AppUserService {
         return appUserRepository.save(appUser);
     }
 
+    public AppUser update(Long id, AppUser appUserDetails) {
+        Optional<AppUser> userOpt = appUserRepository.findById(id);
+        if (userOpt.isPresent()) {
+            AppUser existingUser = userOpt.get();
+            if (appUserDetails.getUsername() != null) {
+                existingUser.setUsername(appUserDetails.getUsername());
+            }
+            if (appUserDetails.getPassword() != null) {
+                existingUser.setPassword(appUserDetails.getPassword());
+            }
+            return appUserRepository.save(existingUser);
+        }
+        throw new RuntimeException("User not found with id: " + id);
+    }
+
     public void deleteById(Long id) {
         appUserRepository.deleteById(id);
     }

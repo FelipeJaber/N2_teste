@@ -502,6 +502,10 @@
                                 <label for="bookPrice">Preço (R$)</label>
                                 <input type="number" step="0.01" id="bookPrice" placeholder="0.00" required>
                             </div>
+                            <div class="form-group">
+                                <label for="bookQuantity">Estoque</label>
+                                <input type="number" id="bookQuantity" placeholder="0" required>
+                            </div>
                         </div>
                         <button type="submit" class="btn-primary">Salvar Livro</button>
                         <button type="button" class="btn-secondary" onclick="document.getElementById('bookForm').reset(); document.getElementById('bookId').value = '';">Limpar</button>
@@ -515,6 +519,7 @@
                             <th>Autor</th>
                             <th>Gênero</th>
                             <th>Preço</th>
+                            <th>Estoque</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -781,7 +786,7 @@
                 tbody.innerHTML = '';
 
                 if (!Array.isArray(books) || books.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum livro registrado</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhum livro registrado</td></tr>';
                     return;
                 }
 
@@ -793,8 +798,9 @@
                         <td>${book.author}</td>
                         <td>${book.genre}</td>
                         <td>R$ ${book.price.toFixed(2)}</td>
+                        <td>${book.quantity || 0}</td>
                         <td>
-                            <button class="btn-edit btn-small" onclick="editBook(${book.id}, '${book.title}', '${book.author}', '${book.genre}', ${book.price})">Editar</button>
+                            <button class="btn-edit btn-small" onclick="editBook(${book.id}, '${book.title}', '${book.author}', '${book.genre}', ${book.price}, ${book.quantity})">Editar</button>
                             <button class="btn-delete btn-small" onclick="deleteBook(${book.id})">Excluir</button>
                         </td>
                     `;
@@ -803,16 +809,17 @@
             } catch (error) {
                 console.error('Erro ao carregar livros:', error);
                 const tbody = document.querySelector('#booksTable tbody');
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Erro ao carregar livros</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Erro ao carregar livros</td></tr>';
             }
         }
 
-        function editBook(id, title, author, genre, price) {
+        function editBook(id, title, author, genre, price, quantity) {
             document.getElementById('bookId').value = id;
             document.getElementById('bookTitle').value = title;
             document.getElementById('bookAuthor').value = author;
             document.getElementById('bookGenre').value = genre;
             document.getElementById('bookPrice').value = price;
+            document.getElementById('bookQuantity').value = quantity || 0;
             document.querySelector('#booksScreen').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -834,6 +841,7 @@
             const author = document.getElementById('bookAuthor').value;
             const genre = document.getElementById('bookGenre').value;
             const price = parseFloat(document.getElementById('bookPrice').value);
+            const quantity = parseInt(document.getElementById('bookQuantity').value);
             const method = id ? 'PUT' : 'POST';
             const url = id ? `${baseUrl}/books/${id}` : `${baseUrl}/books`;
 
@@ -841,7 +849,7 @@
                 await fetch(url, {
                     method,
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, author, genre, price })
+                    body: JSON.stringify({ title, author, genre, price, quantity })
                 });
                 document.getElementById('bookForm').reset();
                 showToast(`Livro ${id ? 'atualizado' : 'criado'} com sucesso`, 'success');
@@ -854,27 +862,48 @@
 
         async function loadSales() {
             try {
-                const response = await fetch(`${baseUrl}/sales`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const [salesRes, booksRes, usersRes] = await Promise.all([
+                    fetch(`${baseUrl}/sales`),
+                    fetch(`${baseUrl}/books`),
+                    fetch(`${baseUrl}/users`)
+                ]);
+
+                if (!salesRes.ok) {
+                    throw new Error(`HTTP error! status: ${salesRes.status}`);
                 }
-                const sales = await response.json();
+
+                const sales = await salesRes.json();
+                const books = booksRes.ok ? await booksRes.json() : [];
+                const users = usersRes.ok ? await usersRes.json() : [];
+
                 console.log('Vendas carregadas:', sales);
                 const tbody = document.querySelector('#salesTable tbody');
                 tbody.innerHTML = '';
 
                 if (!Array.isArray(sales) || sales.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhuma venda registrada</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhuma venda registrada</td></tr>';
                     return;
                 }
 
                 sales.forEach(sale => {
                     const row = document.createElement('tr');
-                    const date = new Date(sale.date).toLocaleDateString('pt-BR');
+                    const date = new Date(sale.date).toLocaleDateString('pt-BR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    const book = books.find(b => b.id === sale.bookId);
+                    const user = users.find(u => u.id === sale.userId);
+                    const bookTitle = book ? book.title : `Livro #${sale.bookId}`;
+                    const userName = user ? user.username : `Usuário #${sale.userId}`;
+
                     row.innerHTML = `
                         <td>${sale.id}</td>
-                        <td>${sale.userId}</td>
-                        <td>${sale.bookId}</td>
+                        <td>${userName}</td>
+                        <td>${bookTitle}</td>
                         <td>${sale.quantity}</td>
                         <td>${date}</td>
                         <td>
@@ -887,7 +916,7 @@
             } catch (error) {
                 console.error('Erro ao carregar vendas:', error);
                 const tbody = document.querySelector('#salesTable tbody');
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Erro ao carregar vendas</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Erro ao carregar vendas: ' + error.message + '</td></tr>';
             }
         }
 
@@ -902,11 +931,15 @@
         async function deleteSale(id) {
             if (!confirm('Tem certeza que deseja excluir esta venda?')) return;
             try {
-                await fetch(`${baseUrl}/sales/${id}`, { method: 'DELETE' });
+                const response = await fetch(`${baseUrl}/sales/${id}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    throw new Error('Erro ao excluir venda');
+                }
                 showToast('Venda excluída com sucesso', 'success');
                 loadSales();
+                loadDashboard();
             } catch (error) {
-                showToast('Erro ao excluir venda', 'error');
+                showToast('Erro ao excluir venda: ' + error.message, 'error');
             }
         }
 
@@ -920,17 +953,25 @@
             const url = id ? `${baseUrl}/sales/${id}` : `${baseUrl}/sales`;
 
             try {
-                await fetch(url, {
+                const response = await fetch(url, {
                     method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, bookId, quantity })
                 });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Erro ao salvar venda');
+                }
+
                 document.getElementById('saleForm').reset();
                 showToast(`Venda ${id ? 'atualizada' : 'registrada'} com sucesso`, 'success');
                 loadSales();
                 loadDashboard();
             } catch (error) {
-                showToast('Erro ao salvar venda', 'error');
+                console.error('Erro:', error);
+                showToast(error.message || 'Erro ao salvar venda', 'error');
             }
         });
 
@@ -940,4 +981,13 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
