@@ -1,14 +1,14 @@
 # Sistema de Vendas de Livros
 
-## Instruções de Execução
-
-### Projeto Avaliação N2 - Teste De Software
-
 ### Feito por:
 - Felipe Jaber
 - Breno Cardoso
 - Karen Quésia
 - Maria Laura Menezes
+
+## Instruções de Execução
+
+### Projeto Avaliação N2 - Teste De Software
 
 ### Pré-requisitos
 - Java 25 ou superior
