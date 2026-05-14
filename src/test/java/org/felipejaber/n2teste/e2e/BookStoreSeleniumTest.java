@@ -141,7 +141,7 @@ void deveCadastrarEExcluirUsuarioComSucesso() {
         realizarLogin();
         acessarTelaVendas();
 
-        Integer quantidade = 52;
+        Integer quantidade = 2;
 
         cadastrarVendaPelaTela(String.valueOf(quantidade));
 
