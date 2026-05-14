@@ -6,6 +6,8 @@
 - Karen Quézia
 - Maria Laura Menezes
 
+## Link para o video do projeto funcionando: https://drive.google.com/drive/folders/17qiITSZTbyd3Lbh2c2rrfmqrKNZLwWZB?usp=sharing
+
 ## Instruções de Execução
 
 ### Projeto Avaliação N2 - Teste De Software
