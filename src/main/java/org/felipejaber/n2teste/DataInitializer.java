@@ -28,9 +28,9 @@ public class DataInitializer implements CommandLineRunner {
             }
 
             if (bookRepository.findAll().isEmpty()) {
-                bookRepository.save(new Book("O Senhor dos Anéis", "J.R.R. Tolkien", 85.90, "Fantasia"));
-                bookRepository.save(new Book("1984", "George Orwell", 45.00, "Ficção Científica"));
-                bookRepository.save(new Book("Dom Casmurro", "Machado de Assis", 35.50, "Romance"));
+                bookRepository.save(new Book("O Senhor dos Anéis", "J.R.R. Tolkien", 85.90, "Fantasia", 10));
+                bookRepository.save(new Book("1984", "George Orwell", 45.00, "Ficção Científica", 15));
+                bookRepository.save(new Book("Dom Casmurro", "Machado de Assis", 35.50, "Romance", 8));
                 System.out.println("Livros criados com sucesso");
             }
         } catch (Exception e) {
@@ -39,4 +39,5 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 }
+
 

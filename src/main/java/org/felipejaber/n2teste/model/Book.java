@@ -16,14 +16,16 @@ public class Book {
     private String author;
     private Double price;
     private String genre;
+    private Integer quantity;
 
     public Book() {}
 
-    public Book(String title, String author, Double price, String genre) {
+    public Book(String title, String author, Double price, String genre, Integer quantity) {
         this.title = title;
         this.author = author;
         this.price = price;
         this.genre = genre;
+        this.quantity = quantity;
     }
 
     public Long getId() {
@@ -64,5 +66,13 @@ public class Book {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 }

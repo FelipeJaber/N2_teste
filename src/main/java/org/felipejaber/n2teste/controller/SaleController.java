@@ -31,8 +31,7 @@ public class SaleController {
 
     @PutMapping("/{id}")
     public Sale updateSale(@PathVariable Long id, @RequestBody Sale sale) {
-        sale.setId(id);
-        return saleService.save(sale);
+        return saleService.update(id, sale);
     }
 
     @DeleteMapping("/{id}")

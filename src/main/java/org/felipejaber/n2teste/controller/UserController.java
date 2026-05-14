@@ -32,8 +32,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public AppUser updateUser(@PathVariable Long id, @RequestBody AppUser appUser) {
-        appUser.setId(id);
-        return appUserService.save(appUser);
+        return appUserService.update(id, appUser);
     }
 
     @DeleteMapping("/{id}")
