@@ -325,6 +325,66 @@
             color: #999;
             margin-top: 0.5rem;
         }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left-color: #28a745;
+        }
+
+        .toast.error {
+            border-left-color: #dc3545;
+        }
+
+        .toast-icon {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #999;
+            margin-left: 0.5rem;
+            padding: 0;
+        }
+
+        .toast-close:hover {
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -341,6 +401,8 @@
             <button id="logoutBtn" class="btn-logout btn-small">Logout</button>
         </div>
     </nav>
+
+    <div class="toast-container" id="toastContainer"></div>
 
     <div id="loginScreen" class="screen active">
         <div class="login-container">
@@ -577,6 +639,35 @@
             setTimeout(() => msgDiv.textContent = '', 3000);
         }
 
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icon = type === 'success' ? '✅' : '❌';
+
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span class="toast-message">${message}</span>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, 4000);
+        }
+
         async function loadDashboard() {
             try {
                 const [usersRes, booksRes, salesRes] = await Promise.all([
@@ -648,10 +739,10 @@
             if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
             try {
                 await fetch(`${baseUrl}/users/${id}`, { method: 'DELETE' });
-                showMessage('usersScreen', 'Usuário excluído com sucesso', 'success');
+                showToast('Usuário excluído com sucesso', 'success');
                 loadUsers();
             } catch (error) {
-                showMessage('usersScreen', 'Erro ao excluir usuário', 'error');
+                showToast('Erro ao excluir usuário', 'error');
             }
         }
 
@@ -670,11 +761,11 @@
                     body: JSON.stringify({ username, password })
                 });
                 document.getElementById('userForm').reset();
-                showMessage('usersScreen', `Usuário ${id ? 'atualizado' : 'criado'} com sucesso`, 'success');
+                showToast(`Usuário ${id ? 'atualizado' : 'criado'} com sucesso`, 'success');
                 loadUsers();
                 loadDashboard();
             } catch (error) {
-                showMessage('usersScreen', 'Erro ao salvar usuário', 'error');
+                showToast('Erro ao salvar usuário', 'error');
             }
         });
 
@@ -729,10 +820,10 @@
             if (!confirm('Tem certeza que deseja excluir este livro?')) return;
             try {
                 await fetch(`${baseUrl}/books/${id}`, { method: 'DELETE' });
-                showMessage('booksScreen', 'Livro excluído com sucesso', 'success');
+                showToast('Livro excluído com sucesso', 'success');
                 loadBooks();
             } catch (error) {
-                showMessage('booksScreen', 'Erro ao excluir livro', 'error');
+                showToast('Erro ao excluir livro', 'error');
             }
         }
 
@@ -753,11 +844,11 @@
                     body: JSON.stringify({ title, author, genre, price })
                 });
                 document.getElementById('bookForm').reset();
-                showMessage('booksScreen', `Livro ${id ? 'atualizado' : 'criado'} com sucesso`, 'success');
+                showToast(`Livro ${id ? 'atualizado' : 'criado'} com sucesso`, 'success');
                 loadBooks();
                 loadDashboard();
             } catch (error) {
-                showMessage('booksScreen', 'Erro ao salvar livro', 'error');
+                showToast('Erro ao salvar livro', 'error');
             }
         });
 
@@ -812,10 +903,10 @@
             if (!confirm('Tem certeza que deseja excluir esta venda?')) return;
             try {
                 await fetch(`${baseUrl}/sales/${id}`, { method: 'DELETE' });
-                showMessage('salesScreen', 'Venda excluída com sucesso', 'success');
+                showToast('Venda excluída com sucesso', 'success');
                 loadSales();
             } catch (error) {
-                showMessage('salesScreen', 'Erro ao excluir venda', 'error');
+                showToast('Erro ao excluir venda', 'error');
             }
         }
 
@@ -835,11 +926,11 @@
                     body: JSON.stringify({ userId, bookId, quantity })
                 });
                 document.getElementById('saleForm').reset();
-                showMessage('salesScreen', `Venda ${id ? 'atualizada' : 'registrada'} com sucesso`, 'success');
+                showToast(`Venda ${id ? 'atualizada' : 'registrada'} com sucesso`, 'success');
                 loadSales();
                 loadDashboard();
             } catch (error) {
-                showMessage('salesScreen', 'Erro ao salvar venda', 'error');
+                showToast('Erro ao salvar venda', 'error');
             }
         });
 
@@ -849,10 +940,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
 
