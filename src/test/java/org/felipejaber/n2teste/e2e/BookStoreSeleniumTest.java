@@ -1,27 +1,32 @@
 package org.felipejaber.n2teste.e2e;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.felipejaber.n2teste.model.Sale;
+import org.felipejaber.n2teste.repository.SaleRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.Duration;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class BookStoreSeleniumTest {
 
     private WebDriver driver;
     private WebDriverWait wait;
+
+    @Autowired
+    private SaleRepository saleRepository;
 
     @BeforeEach
     void setup() {
@@ -44,75 +49,93 @@ class BookStoreSeleniumTest {
     private void realizarLogin() {
         driver.get("http://localhost:8080");
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loginUsername")))
-                .sendKeys("admin");
-
-        driver.findElement(By.id("loginPassword"))
-                .sendKeys("admin123");
-
-        driver.findElement(By.cssSelector("#loginForm button[type='submit']"))
-                .click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loginUsername"))).sendKeys("admin");
+        driver.findElement(By.id("loginPassword")).sendKeys("admin123");
+        driver.findElement(By.cssSelector("#loginForm button[type='submit']")).click();
 
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("currentUser")));
 
-        String usuarioLogado = driver.findElement(By.id("currentUser")).getText();
-
-        assertTrue(usuarioLogado.contains("admin"));
+        assertTrue(driver.findElement(By.id("currentUser")).getText().contains("admin"));
     }
 
-    @Test
-    void deveRealizarLoginAcessarLivrosECadastrarLivroComSucesso() {
-        realizarLogin();
+    private void acessarTelaVendas() {
+        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("[data-screen='sales']"))).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("saleUserId")));
+    }
 
-        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("[data-screen='books']")))
-                .click();
+    private void cadastrarVendaPelaTela(String quantidade) {
+        driver.findElement(By.id("saleUserId")).clear();
+        driver.findElement(By.id("saleUserId")).sendKeys("1");
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("bookTitle")));
+        driver.findElement(By.id("saleBookId")).clear();
+        driver.findElement(By.id("saleBookId")).sendKeys("1");
 
-        String tituloLivro = "Livro Selenium " + System.currentTimeMillis();
+        driver.findElement(By.id("saleQuantity")).clear();
+        driver.findElement(By.id("saleQuantity")).sendKeys(quantidade);
 
-        driver.findElement(By.id("bookTitle")).sendKeys(tituloLivro);
-        driver.findElement(By.id("bookAuthor")).sendKeys("Autor Teste Selenium");
-        driver.findElement(By.id("bookGenre")).sendKeys("Testes");
-        driver.findElement(By.id("bookPrice")).sendKeys("49.90");
-
-        driver.findElement(By.cssSelector("#bookForm button[type='submit']"))
-                .click();
+        driver.findElement(By.cssSelector("#saleForm button[type='submit']")).click();
 
         wait.until(ExpectedConditions.textToBePresentInElementLocated(
                 By.tagName("body"),
-                "Livro criado com sucesso"
+                "Venda registrada com sucesso"
         ));
 
         assertTrue(driver.findElement(By.tagName("body"))
                 .getText()
-                .contains("Livro criado com sucesso"));
+                .contains("Venda registrada com sucesso"));
+    }
+
+    private Optional<Sale> buscarVendaNoBancoPorQuantidade(Integer quantidade) {
+        return saleRepository.findAll()
+                .stream()
+                .filter(sale -> sale.getUserId().equals(1L))
+                .filter(sale -> sale.getBookId().equals(1L))
+                .filter(sale -> sale.getQuantity().equals(quantidade))
+                .findFirst();
     }
 
     @Test
-    void deveRealizarLoginAcessarUsuariosECadastrarUsuarioComSucesso() {
+    void deveRegistrarVendaComSucesso() {
         realizarLogin();
+        acessarTelaVendas();
 
-        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("[data-screen='users']")))
-                .click();
+        Integer quantidade = 51;
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("userUsername")));
+        cadastrarVendaPelaTela(String.valueOf(quantidade));
 
-        String usuario = "usuario_selenium_" + System.currentTimeMillis();
+        Optional<Sale> vendaCriada = buscarVendaNoBancoPorQuantidade(quantidade);
 
-        driver.findElement(By.id("userUsername")).sendKeys(usuario);
-        driver.findElement(By.id("userPassword")).sendKeys("123456");
+        assertTrue(vendaCriada.isPresent());
+    }
 
-        driver.findElement(By.cssSelector("#userForm button[type='submit']"))
-                .click();
+    @Test
+    void deveExcluirVendaComSucesso() {
+        realizarLogin();
+        acessarTelaVendas();
+
+        Integer quantidade = 52;
+
+        cadastrarVendaPelaTela(String.valueOf(quantidade));
+
+        Sale vendaCriada = buscarVendaNoBancoPorQuantidade(quantidade)
+                .orElseThrow(() -> new AssertionError("Venda não foi salva no banco H2."));
+
+        Long idVenda = vendaCriada.getId();
+
+        WebElement linhaVenda = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//table[@id='salesTable']//tr[td[text()='" + idVenda + "']]")
+        ));
+
+        linhaVenda.findElement(By.cssSelector(".btn-delete")).click();
+
+        wait.until(ExpectedConditions.alertIsPresent());
+        driver.switchTo().alert().accept();
 
         wait.until(ExpectedConditions.textToBePresentInElementLocated(
                 By.tagName("body"),
-                "Usuário criado com sucesso"
+                "Venda excluída com sucesso"
         ));
 
-        assertTrue(driver.findElement(By.tagName("body"))
-                .getText()
-                .contains("Usuário criado com sucesso"));
+        assertFalse(saleRepository.existsById(idVenda));
     }
 }

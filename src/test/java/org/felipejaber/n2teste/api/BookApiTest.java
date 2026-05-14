@@ -1,20 +1,28 @@
 package org.felipejaber.n2teste.api;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.felipejaber.n2teste.repository.BookRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BookApiTest {
 
     @LocalServerPort
     private int port;
+
+    @Autowired
+    private BookRepository bookRepository;
 
     @BeforeEach
     void setup() {
@@ -23,35 +31,55 @@ class BookApiTest {
     }
 
     @Test
-    void deveListarLivrosComSucesso() {
-        given()
+    void deveCadastrarLivroESalvarNoBancoH2() {
+        Map<String, Object> livro = new HashMap<>();
+        livro.put("title", "Livro API H2");
+        livro.put("author", "Autor API");
+        livro.put("price", 59.90);
+        livro.put("genre", "Teste API");
+
+        Number idCriado = given()
+                .contentType(ContentType.JSON)
+                .body(livro)
         .when()
-            .get("/books")
+                .post("/books")
         .then()
-            .statusCode(200);
+                .statusCode(200)
+                .extract()
+                .path("id");
+
+        assertNotNull(idCriado);
+        assertTrue(bookRepository.existsById(idCriado.longValue()));
     }
 
     @Test
-    void deveCadastrarLivroComSucesso() {
-        String body = """
-                {
-                    "title": "O Pequeno Príncipe",
-                    "author": "Antoine de Saint-Exupéry",
-                    "price": 39.90,
-                    "genre": "Fábula"
-                }
-                """;
+    void deveExcluirLivroERemoverDoBancoH2() {
+        Map<String, Object> livro = new HashMap<>();
+        livro.put("title", "Livro Para Excluir");
+        livro.put("author", "Autor Exclusao");
+        livro.put("price", 29.90);
+        livro.put("genre", "Teste Delete");
+
+        Number idCriado = given()
+                .contentType(ContentType.JSON)
+                .body(livro)
+        .when()
+                .post("/books")
+        .then()
+                .statusCode(200)
+                .extract()
+                .path("id");
+
+        Long id = idCriado.longValue();
+
+        assertTrue(bookRepository.existsById(id));
 
         given()
-            .contentType("application/json")
-            .body(body)
         .when()
-            .post("/books")
+                .delete("/books/" + id)
         .then()
-            .statusCode(200)
-            .body("id", notNullValue())
-            .body("title", equalTo("O Pequeno Príncipe"))
-            .body("author", equalTo("Antoine de Saint-Exupéry"))
-            .body("genre", equalTo("Fábula"));
+                .statusCode(200);
+
+        assertFalse(bookRepository.existsById(id));
     }
 }

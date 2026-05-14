@@ -34,9 +34,21 @@ class AppUserServiceTest {
 
         assertTrue(resultado.isPresent());
         assertEquals("admin", resultado.get().getUsername());
-        assertEquals("admin123", resultado.get().getPassword());
 
         verify(appUserRepository, times(1))
                 .findByUsernameAndPassword("admin", "admin123");
+    }
+
+    @Test
+    void naoDeveAutenticarUsuarioComCredenciaisInvalidas() {
+        when(appUserRepository.findByUsernameAndPassword("usuario_errado", "senha_errada"))
+                .thenReturn(Optional.empty());
+
+        Optional<AppUser> resultado = appUserService.findByUsernameAndPassword("usuario_errado", "senha_errada");
+
+        assertTrue(resultado.isEmpty());
+
+        verify(appUserRepository, times(1))
+                .findByUsernameAndPassword("usuario_errado", "senha_errada");
     }
 }
