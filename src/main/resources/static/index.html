@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Vendas de Livros</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        nav {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        nav button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        nav button.active {
+            background-color: #667eea;
+            border-bottom: 3px solid #fff;
+        }
+
+        .navbar-brand {
+            position: absolute;
+            left: 2rem;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .navbar-user {
+            position: absolute;
+            right: 2rem;
+            color: #ddd;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 60px);
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-card h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        input[type="email"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+            margin-top: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            margin: 0 0.5rem;
+        }
+
+        .btn-edit {
+            background-color: #667eea;
+            color: white;
+            width: auto;
+        }
+
+        .btn-delete {
+            background-color: #ff6b6b;
+            color: white;
+            width: auto;
+        }
+
+        .btn-edit:hover {
+            background-color: #5568d3;
+        }
+
+        .btn-delete:hover {
+            background-color: #ff5252;
+        }
+
+        .btn-logout {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background-color: #ff5252;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+            display: inline-block;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        thead {
+            background-color: #667eea;
+            color: white;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #999;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav id="navbar" style="display: none;">
+        <div class="navbar-brand">📚 BookStore</div>
+        <ul>
+            <li><button class="nav-btn active" data-screen="dashboard">Dashboard</button></li>
+            <li><button class="nav-btn" data-screen="users">Gerenciar Usuários</button></li>
+            <li><button class="nav-btn" data-screen="books">Gerenciar Livros</button></li>
+            <li><button class="nav-btn" data-screen="sales">Vendas</button></li>
+        </ul>
+        <div class="navbar-user">
+            Usuário: <span id="currentUser"></span>
+            <button id="logoutBtn" class="btn-logout btn-small">Logout</button>
+        </div>
+    </nav>
+
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="login-card">
+                <h1>📚 BookStore</h1>
+                <p style="text-align: center; color: #999; margin-bottom: 2rem;">Sistema de Vendas de Livros</p>
+                <div id="loginMessage"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Usuário</label>
+                        <input type="text" id="loginUsername" placeholder="Digite seu usuário" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Senha</label>
+                        <input type="password" id="loginPassword" placeholder="Digite sua senha" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="dashboardScreen" class="screen">
+            <div class="card">
+                <h2>Dashboard</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalUsers">0</div>
+                        <div class="stat-label">Usuários Registrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalBooks">0</div>
+                        <div class="stat-label">Livros Cadastrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalSales">0</div>
+                        <div class="stat-label">Vendas Realizadas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="usersScreen" class="screen">
+            <div class="card">
+                <h2>Gerenciar Usuários</h2>
+                <div class="form-section">
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userUsername">Usuário</label>
+                                <input type="text" id="userUsername" placeholder="Digite o usuário" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="userPassword">Senha</label>
+                                <input type="password" id="userPassword" placeholder="Digite a senha" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">Salvar Usuário</button>
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('userForm').reset(); document.getElementById('userId').value = '';">Limpar</button>
+                    </form>
+                </div>
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuário</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="booksScreen" class="screen">
+            <div class="card">
+                <h2>Gerenciar Livros</h2>
+                <div class="form-section">
+                    <form id="bookForm">
+                        <input type="hidden" id="bookId">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="bookTitle">Título</label>
+                                <input type="text" id="bookTitle" placeholder="Título do livro" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="bookAuthor">Autor</label>
+                                <input type="text" id="bookAuthor" placeholder="Nome do autor" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="bookGenre">Gênero</label>
+                                <input type="text" id="bookGenre" placeholder="Gênero literário" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="bookPrice">Preço (R$)</label>
+                                <input type="number" step="0.01" id="bookPrice" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">Salvar Livro</button>
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('bookForm').reset(); document.getElementById('bookId').value = '';">Limpar</button>
+                    </form>
+                </div>
+                <table id="booksTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Autor</th>
+                            <th>Gênero</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="salesScreen" class="screen">
+            <div class="card">
+                <h2>Registro de Vendas</h2>
+                <div class="form-section">
+                    <form id="saleForm">
+                        <input type="hidden" id="saleId">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="saleUserId">ID do Usuário</label>
+                                <input type="number" id="saleUserId" placeholder="ID do usuário" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="saleBookId">ID do Livro</label>
+                                <input type="number" id="saleBookId" placeholder="ID do livro" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="saleQuantity">Quantidade</label>
+                                <input type="number" id="saleQuantity" placeholder="Quantidade" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">Registrar Venda</button>
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('saleForm').reset(); document.getElementById('saleId').value = '';">Limpar</button>
+                    </form>
+                </div>
+                <table id="salesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuário</th>
+                            <th>Livro</th>
+                            <th>Quantidade</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = '';
+        let currentUser = null;
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenName + 'Screen').classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-screen="${screenName}"]`).classList.add('active');
+        }
+
+        function showLoginScreen() {
+            document.getElementById('navbar').style.display = 'none';
+            document.getElementById('loginScreen').classList.add('active');
+            document.getElementById('dashboardScreen').classList.remove('active');
+        }
+
+        function showMainApp() {
+            document.getElementById('navbar').style.display = 'block';
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('currentUser').textContent = currentUser.username;
+            loadDashboard();
+            showScreen('dashboard');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${baseUrl}/users/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const user = await response.json();
+
+                if (user && user.id) {
+                    currentUser = user;
+                    showMainApp();
+                    document.getElementById('loginForm').reset();
+                } else {
+                    showMessage('loginMessage', 'Credenciais inválidas', 'error');
+                }
+            } catch (error) {
+                showMessage('loginMessage', 'Erro ao fazer login', 'error');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            document.getElementById('loginForm').reset();
+            showLoginScreen();
+        });
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const screenName = btn.dataset.screen;
+                showScreen(screenName);
+                if (screenName === 'dashboard') loadDashboard();
+                if (screenName === 'users') loadUsers();
+                if (screenName === 'books') loadBooks();
+                if (screenName === 'sales') loadSales();
+            });
+        });
+
+        function showMessage(elementId, message, type) {
+            const msgDiv = document.getElementById(elementId);
+            msgDiv.className = `message ${type}`;
+            msgDiv.textContent = message;
+            setTimeout(() => msgDiv.textContent = '', 3000);
+        }
+
+        async function loadDashboard() {
+            try {
+                const [usersRes, booksRes, salesRes] = await Promise.all([
+                    fetch(`${baseUrl}/users`),
+                    fetch(`${baseUrl}/books`),
+                    fetch(`${baseUrl}/sales`)
+                ]);
+
+                const users = usersRes.ok ? await usersRes.json() : [];
+                const books = booksRes.ok ? await booksRes.json() : [];
+                const sales = salesRes.ok ? await salesRes.json() : [];
+
+                console.log('Dashboard carregado:', { users, books, sales });
+
+                document.getElementById('totalUsers').textContent = Array.isArray(users) ? users.length : 0;
+                document.getElementById('totalBooks').textContent = Array.isArray(books) ? books.length : 0;
+                document.getElementById('totalSales').textContent = Array.isArray(sales) ? sales.length : 0;
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+                document.getElementById('totalUsers').textContent = '0';
+                document.getElementById('totalBooks').textContent = '0';
+                document.getElementById('totalSales').textContent = '0';
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${baseUrl}/users`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const users = await response.json();
+                console.log('Usuários carregados:', users);
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = '';
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="empty-state">Nenhum usuário registrado</td></tr>';
+                    return;
+                }
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>
+                            <button class="btn-edit btn-small" onclick="editUser(${user.id}, '${user.username}', '${user.password}')">Editar</button>
+                            <button class="btn-delete btn-small" onclick="deleteUser(${user.id})">Excluir</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = '<tr><td colspan="3" class="empty-state">Erro ao carregar usuários</td></tr>';
+            }
+        }
+
+        function editUser(id, username, password) {
+            document.getElementById('userId').value = id;
+            document.getElementById('userUsername').value = username;
+            document.getElementById('userPassword').value = password;
+            document.querySelector('#usersScreen').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+            try {
+                await fetch(`${baseUrl}/users/${id}`, { method: 'DELETE' });
+                showMessage('usersScreen', 'Usuário excluído com sucesso', 'success');
+                loadUsers();
+            } catch (error) {
+                showMessage('usersScreen', 'Erro ao excluir usuário', 'error');
+            }
+        }
+
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            const username = document.getElementById('userUsername').value;
+            const password = document.getElementById('userPassword').value;
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${baseUrl}/users/${id}` : `${baseUrl}/users`;
+
+            try {
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                document.getElementById('userForm').reset();
+                showMessage('usersScreen', `Usuário ${id ? 'atualizado' : 'criado'} com sucesso`, 'success');
+                loadUsers();
+                loadDashboard();
+            } catch (error) {
+                showMessage('usersScreen', 'Erro ao salvar usuário', 'error');
+            }
+        });
+
+        async function loadBooks() {
+            try {
+                const response = await fetch(`${baseUrl}/books`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const books = await response.json();
+                console.log('Livros carregados:', books);
+                const tbody = document.querySelector('#booksTable tbody');
+                tbody.innerHTML = '';
+
+                if (!Array.isArray(books) || books.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum livro registrado</td></tr>';
+                    return;
+                }
+
+                books.forEach(book => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${book.id}</td>
+                        <td>${book.title}</td>
+                        <td>${book.author}</td>
+                        <td>${book.genre}</td>
+                        <td>R$ ${book.price.toFixed(2)}</td>
+                        <td>
+                            <button class="btn-edit btn-small" onclick="editBook(${book.id}, '${book.title}', '${book.author}', '${book.genre}', ${book.price})">Editar</button>
+                            <button class="btn-delete btn-small" onclick="deleteBook(${book.id})">Excluir</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar livros:', error);
+                const tbody = document.querySelector('#booksTable tbody');
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Erro ao carregar livros</td></tr>';
+            }
+        }
+
+        function editBook(id, title, author, genre, price) {
+            document.getElementById('bookId').value = id;
+            document.getElementById('bookTitle').value = title;
+            document.getElementById('bookAuthor').value = author;
+            document.getElementById('bookGenre').value = genre;
+            document.getElementById('bookPrice').value = price;
+            document.querySelector('#booksScreen').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteBook(id) {
+            if (!confirm('Tem certeza que deseja excluir este livro?')) return;
+            try {
+                await fetch(`${baseUrl}/books/${id}`, { method: 'DELETE' });
+                showMessage('booksScreen', 'Livro excluído com sucesso', 'success');
+                loadBooks();
+            } catch (error) {
+                showMessage('booksScreen', 'Erro ao excluir livro', 'error');
+            }
+        }
+
+        document.getElementById('bookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('bookId').value;
+            const title = document.getElementById('bookTitle').value;
+            const author = document.getElementById('bookAuthor').value;
+            const genre = document.getElementById('bookGenre').value;
+            const price = parseFloat(document.getElementById('bookPrice').value);
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${baseUrl}/books/${id}` : `${baseUrl}/books`;
+
+            try {
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, author, genre, price })
+                });
+                document.getElementById('bookForm').reset();
+                showMessage('booksScreen', `Livro ${id ? 'atualizado' : 'criado'} com sucesso`, 'success');
+                loadBooks();
+                loadDashboard();
+            } catch (error) {
+                showMessage('booksScreen', 'Erro ao salvar livro', 'error');
+            }
+        });
+
+        async function loadSales() {
+            try {
+                const response = await fetch(`${baseUrl}/sales`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const sales = await response.json();
+                console.log('Vendas carregadas:', sales);
+                const tbody = document.querySelector('#salesTable tbody');
+                tbody.innerHTML = '';
+
+                if (!Array.isArray(sales) || sales.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhuma venda registrada</td></tr>';
+                    return;
+                }
+
+                sales.forEach(sale => {
+                    const row = document.createElement('tr');
+                    const date = new Date(sale.date).toLocaleDateString('pt-BR');
+                    row.innerHTML = `
+                        <td>${sale.id}</td>
+                        <td>${sale.userId}</td>
+                        <td>${sale.bookId}</td>
+                        <td>${sale.quantity}</td>
+                        <td>${date}</td>
+                        <td>
+                            <button class="btn-edit btn-small" onclick="editSale(${sale.id}, ${sale.userId}, ${sale.bookId}, ${sale.quantity})">Editar</button>
+                            <button class="btn-delete btn-small" onclick="deleteSale(${sale.id})">Excluir</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar vendas:', error);
+                const tbody = document.querySelector('#salesTable tbody');
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Erro ao carregar vendas</td></tr>';
+            }
+        }
+
+        function editSale(id, userId, bookId, quantity) {
+            document.getElementById('saleId').value = id;
+            document.getElementById('saleUserId').value = userId;
+            document.getElementById('saleBookId').value = bookId;
+            document.getElementById('saleQuantity').value = quantity;
+            document.querySelector('#salesScreen').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteSale(id) {
+            if (!confirm('Tem certeza que deseja excluir esta venda?')) return;
+            try {
+                await fetch(`${baseUrl}/sales/${id}`, { method: 'DELETE' });
+                showMessage('salesScreen', 'Venda excluída com sucesso', 'success');
+                loadSales();
+            } catch (error) {
+                showMessage('salesScreen', 'Erro ao excluir venda', 'error');
+            }
+        }
+
+        document.getElementById('saleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('saleId').value;
+            const userId = parseInt(document.getElementById('saleUserId').value);
+            const bookId = parseInt(document.getElementById('saleBookId').value);
+            const quantity = parseInt(document.getElementById('saleQuantity').value);
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${baseUrl}/sales/${id}` : `${baseUrl}/sales`;
+
+            try {
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, bookId, quantity })
+                });
+                document.getElementById('saleForm').reset();
+                showMessage('salesScreen', `Venda ${id ? 'atualizada' : 'registrada'} com sucesso`, 'success');
+                loadSales();
+                loadDashboard();
+            } catch (error) {
+                showMessage('salesScreen', 'Erro ao salvar venda', 'error');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showLoginScreen();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
