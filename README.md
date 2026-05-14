@@ -116,6 +116,29 @@ O projeto usa **H2 Database** (banco em memória). As tabelas são:
 ✅ Interface responsiva  
 ✅ Full Stack - Frontend HTML + API REST  
 
+## Testes Automatizados
+
+### Testes Unitários (JUnit + Mockito)
+Validação da lógica da camada de serviço de usuários.
+
+**Cenários testados:**
+- autenticação com credenciais válidas
+- autenticação com credenciais inválidas
+
+### Testes de API (REST-assured)
+Validação dos endpoints REST e persistência no banco H2.
+
+**Cenários testados:**
+- cadastro de livro com confirmação de persistência
+- exclusão de livro com confirmação de remoção
+
+### Testes End-to-End (Selenium WebDriver)
+Simulação do fluxo real do usuário na interface web.
+
+**Cenários testados:**
+- cenário de cadastro/exclusão de venda
+- cenário de cadastro/exclusão de usuário
+
 ## Problemas Comuns
 
 ### A API não está retornando dados
