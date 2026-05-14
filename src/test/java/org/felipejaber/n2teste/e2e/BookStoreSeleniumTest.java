@@ -94,20 +94,48 @@ class BookStoreSeleniumTest {
                 .findFirst();
     }
 
-    @Test
-    void deveRegistrarVendaComSucesso() {
-        realizarLogin();
-        acessarTelaVendas();
+@Test
+void deveCadastrarEExcluirUsuarioComSucesso() {
+    realizarLogin();
 
-        Integer quantidade = 51;
+    wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("[data-screen='users']"))).click();
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("userUsername")));
 
-        cadastrarVendaPelaTela(String.valueOf(quantidade));
+    String usuario = "selenium_user_" + System.currentTimeMillis();
 
-        Optional<Sale> vendaCriada = buscarVendaNoBancoPorQuantidade(quantidade);
+    driver.findElement(By.id("userUsername")).sendKeys(usuario);
 
-        assertTrue(vendaCriada.isPresent());
-    }
+    driver.findElement(By.id("userPassword")).sendKeys("123456");
 
+    driver.findElement(By.cssSelector("#userForm button[type='submit']")).click();
+
+    wait.until(ExpectedConditions.textToBePresentInElementLocated(
+            By.tagName("body"),
+            "Usuário criado com sucesso"
+    ));
+
+    assertTrue(driver.findElement(By.tagName("body"))
+            .getText()
+            .contains("Usuário criado com sucesso"));
+
+    WebElement linhaUsuario = wait.until(ExpectedConditions.visibilityOfElementLocated(
+            By.xpath("//table[@id='usersTable']//tr[contains(., '" + usuario + "')]")
+    ));
+
+    linhaUsuario.findElement(By.cssSelector(".btn-delete")).click();
+
+    wait.until(ExpectedConditions.alertIsPresent());
+    driver.switchTo().alert().accept();
+
+    wait.until(ExpectedConditions.textToBePresentInElementLocated(
+            By.tagName("body"),
+            "Usuário excluído com sucesso"
+    ));
+
+    assertTrue(driver.findElement(By.tagName("body"))
+            .getText()
+            .contains("Usuário excluído com sucesso"));
+}
     @Test
     void deveExcluirVendaComSucesso() {
         realizarLogin();
